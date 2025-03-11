@@ -29,7 +29,7 @@ router.post("/", async (req, res) => {
 });
 
 // ✅ Supprimer un post des favoris
-router.post("/remove", async (req, res) => {
+router.delete("/remove", async (req, res) => {
   try {
     const { userId, postId } = req.body;
 

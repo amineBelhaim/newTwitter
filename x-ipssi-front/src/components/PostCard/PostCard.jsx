@@ -6,12 +6,14 @@ import {
   ArrowPathRoundedSquareIcon,
   HeartIcon,
   ShareIcon,
+  BookmarkIcon,
+  BookmarkSlashIcon,
   EllipsisHorizontalIcon,
   TrashIcon,
   HeartIcon as HeartIconSolid,
 } from '@heroicons/react/24/outline';
 import { useDispatch, useSelector } from 'react-redux';
-import { deletePost, likePost } from '../../redux/post/postSlice';
+import { deletePost, getPostsBefore, clearStatus,  addLike,unBookmarkPost, addBookmark,  unlikePost } from '../../redux/post/postSlice';
 import CommentList from '../Comment/CommentList';
 import CommentForm from '../Comment/CommentForm';
 import PostDetailPanel from '../PostDetailPanel/PostDetailPanel';
@@ -23,7 +25,13 @@ export default function PostCard({ post }) {
   const [showOptions, setShowOptions] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [showDetailPanel, setShowDetailPanel] = useState(false);
-  const isLiked = post.likes?.includes(user?.username);
+    // const isLiked = post.likes?.includes(user?.username);
+    const { likedPosts } = useSelector(state => state.post);
+    const { bookmarksPosts } = useSelector(state => state.post);
+
+    // Vérifie si ce post est dans la liste des posts likés par l'utilisateur
+    const isLiked = likedPosts.some(likedPost => likedPost._id === post._id);
+    const isBookmark = bookmarksPosts.some(bookmarksPosts => bookmarksPosts._id === post._id);
 
   const getInitial = (name) => (name ? name.charAt(0).toUpperCase() : '?');
   const isAuthor = user?.username === post.author;
@@ -37,9 +45,23 @@ export default function PostCard({ post }) {
   };
 
   const handleLike = () => {
-    if (user) {
-      dispatch(likePost(post._id));
+        if (user) {
+          if (isLiked) {
+            dispatch(unlikePost({ postId: post._id, userId: user.id }));
+        } else {
+            dispatch(addLike({ postId: post._id, userId: user.id }));
+        }
     }
+    };
+
+    const handleBookmark = () => {
+    if (user) {
+        if (isBookmark) {
+            dispatch(unBookmarkPost({ postId: post._id, userId: user.id }));
+        } else {
+            dispatch(addBookmark({ postId: post._id, userId: user.id }));
+        }
+        }
   };
 
   const toggleComments = (e) => {
@@ -105,16 +127,22 @@ export default function PostCard({ post }) {
                   <span className="text-sm">Commentaires</span>
                 </button>
                 <ArrowPathRoundedSquareIcon className="h-5 w-5 text-gray-500 hover:text-green-500 cursor-pointer" />
-                <button onClick={(e) => { e.stopPropagation(); handleLike(); }} className="flex items-center space-x-1">
+                <button onClick={handleLike} className="flex items-center space-x-1">
                   {isLiked ? (
                     <HeartIconSolid className="h-5 w-5 text-red-500" />
                   ) : (
                     <HeartIcon className="h-5 w-5 text-gray-500 hover:text-red-500" />
                   )}
-                  {post.likes?.length > 0 && (
-                    <span className="text-sm text-gray-500">{post.likes.length}</span>
-                  )}
                 </button>
+
+                <button onClick={handleBookmark} className="flex items-center space-x-1">
+                                {isBookmark ? (
+                                    <BookmarkIcon className="h-5 w-5 text-black-500" />
+                                ) : (
+                                    <BookmarkSlashIcon className="h-5 w-5 text-gray-500 hover:text-black-500" />
+                                )}
+
+                            </button>
                 <ShareIcon className="h-5 w-5 text-gray-500 hover:text-blue-500 cursor-pointer" />
               </div>
             </div>

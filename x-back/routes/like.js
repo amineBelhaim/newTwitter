@@ -22,7 +22,7 @@ router.post("/", async (req, res) => {
 });
 
 // ✅ Supprimer un like
-router.post("/unlike", async (req, res) => {
+router.delete("/unlike", async (req, res) => {
   try {
     const { userId, postId } = req.body;
 

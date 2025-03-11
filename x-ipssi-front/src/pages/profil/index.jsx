@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { logout } from '../../redux/auth/authSlice';
 import PostCard from '../../components/PostCard/PostCard';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getPostsBefore } from '../../redux/post/postSlice';
+import { getPostsBefore , getUserLikedPosts , getUserBookmarkPosts} from '../../redux/post/postSlice';
 import myAxios from '../../utils/interceptor';
 import FollowPanel from './followPanel';
 
@@ -14,6 +14,8 @@ export default function Profile() {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const { posts, loading, hasMore } = useSelector((state) => state.post);
+  const { likedPosts } = useSelector(state => state.post);
+  const { bookmarksPosts } = useSelector(state => state.post);
   const [activeTab, setActiveTab] = useState('posts');
   const observer = useRef();
 
@@ -54,6 +56,20 @@ export default function Profile() {
     if (user?.id) fetchFollowing();
   }, [user]);
 
+      // Charger les posts aimés de l'utilisateur au montage
+      useEffect(() => {
+        if (user) {
+          dispatch(getUserLikedPosts(user.id));
+        }
+      }, [dispatch, user]);
+    
+      // Charger les posts bookamark de l'utilisateur au montage
+      useEffect(() => {
+        if (user) {
+          dispatch(getUserBookmarkPosts(user.id));
+        }
+      }, [dispatch, user]);
+
   // Filtrer les posts de l'utilisateur
   const userPosts = posts.filter(post => post.author === user?.username);
 
@@ -66,7 +82,9 @@ export default function Profile() {
 
   const tabs = [
     { id: 'posts', label: 'Posts' },
-    { id: 'likes', label: 'J\'aime' }
+    { id: 'likes', label: 'J\'aime' },
+    { id: 'bookmarks', label: 'Signet' },
+
   ];
 
   const handleLogout = () => {
@@ -179,10 +197,38 @@ export default function Profile() {
           </div>
         )}
 
-        {activeTab !== 'posts' && (
+        
+
+        
+      {activeTab === 'likes' && likedPosts.length > 0 && (
+        likedPosts.map((post) => (
+          <div key={`${post._id}-${post.createdAt}`}>
+            <PostCard post={post} />
+          </div>
+        ))
+      )}
+              
+        {activeTab === 'likes' && !loading && likedPosts.length === 0 && (
+          console.log("likedPosts", likedPosts),
           <div className="p-8 text-center text-gray-500">
-            <h3 className="font-bold text-xl mb-2">Rien à afficher ici</h3>
-            <p>Cette fonctionnalité sera bientôt disponible.</p>
+            <h3 className="font-bold text-xl mb-2">Aucun post pour le moment</h3>
+            <p>Lorsque vous posterez quelque chose, cela apparaîtra ici.</p>
+          </div>
+        )}
+
+
+      {activeTab === 'bookmarks' && bookmarksPosts.length > 0 && (
+          bookmarksPosts.map((post) => (
+          <div key={`${post._id}-${post.createdAt}`}>
+            <PostCard post={post} />
+          </div>
+        ))
+      )}
+
+        {activeTab === 'bookmarks' && !loading && bookmarksPosts.length === 0 && (
+          <div className="p-8 text-center text-gray-500">
+            <h3 className="font-bold text-xl mb-2">Aucun post pour le moment</h3>
+            <p>Lorsque vous posterez quelque chose, cela apparaîtra ici.</p>
           </div>
         )}
       </div>
