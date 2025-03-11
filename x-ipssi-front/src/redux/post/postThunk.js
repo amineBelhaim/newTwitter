@@ -48,21 +48,78 @@ export const getPostsBefore = createAsyncThunk(
     }
 );
 
+export const addLike = createAsyncThunk(
+    'post/addLike',
+    async ({ postId, userId }, { rejectWithValue }) => {
+        try {
+            const response = await myAxios.post('/api/likes', { userId, postId }); 
+            return { postId, likes: response.data.likes }; // Retourne la liste mise à jour des likes
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: "Erreur lors de l'ajout du like" });
+        }
+    }
+);
 
 
-export const likePost = createAsyncThunk('post/likePost', async (postId, { rejectWithValue }) => {
+export const unlikePost = createAsyncThunk(
+    'post/unlikePost',
+    async ({ postId, userId }, { rejectWithValue }) => {
+        try {
+            const response = await myAxios.delete('/api/likes/unlike', {
+                data: { userId, postId } // Envoie `userId` et `postId` dans le body
+            });
+            return { postId, likes: response.data.likes }; // Retourne la liste mise à jour des likes
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: "Erreur lors du retrait du like" });
+        }
+    }
+);
+
+
+
+export const getUserLikedPosts = createAsyncThunk('post/getUserLikedPosts', async (userId, { rejectWithValue }) => {
     try {
-        const response = await myAxios.put(`api/forum/${postId}/like`);
+        const response = await myAxios.get(`api/likes/user/${userId}`);
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response?.data || { message: "Une erreur est survenue" });
     }
 });
 
-export const getUserLikedPosts = createAsyncThunk('post/getUserLikedPosts', async (userId, { rejectWithValue }) => {
+
+
+export const addBookmark = createAsyncThunk(
+    'post/addBookmark',
+    async ({ postId, userId }, { rejectWithValue }) => {
+        try {
+            const response = await myAxios.post('/api/bookmarks', { userId, postId }); 
+            return { postId, likes: response.data.likes }; // Retourne la liste mise à jour des likes
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: "Erreur lors de l'ajout du like" });
+        }
+    }
+);
+
+
+export const unBookmarkPost = createAsyncThunk(
+    'post/unBookmarkPost',
+    async ({ postId, userId }, { rejectWithValue }) => {
+        try {
+            const response = await myAxios.delete('/api/bookmarks/remove', {
+                data: { userId, postId } // Envoie `userId` et `postId` dans le body
+            });
+            return { postId, likes: response.data.likes }; // Retourne la liste mise à jour des likes
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: "Erreur lors du retrait du like" });
+        }
+    }
+);
+
+
+
+export const getUserBookmarkPosts = createAsyncThunk('post/getUserBookmarkPosts', async (userId, { rejectWithValue }) => {
     try {
-        const response = await myAxios.get(`api/likes/user/${userId}`);
-        console.log("reponse like", response.data); // Debug pour vérifier la structure
+        const response = await myAxios.get(`api/bookmarks/${userId}`);
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response?.data || { message: "Une erreur est survenue" });

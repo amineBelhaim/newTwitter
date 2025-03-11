@@ -7,4 +7,4 @@ const BookmarkSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-const Bookmark = mongoose.model("Bookmark", BookmarkSchema);
+module.exports = mongoose.model("Bookmark", BookmarkSchema);

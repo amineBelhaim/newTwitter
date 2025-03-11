@@ -1,13 +1,14 @@
 import PostForm from '../../components/PostForm/PostForm';
 import PostCard from '../../components/PostCard/PostCard';
 import SidebarRight from '../../components/SidebarRight/SidebarRight';
-import { getPostsBefore, clearStatus } from '../../redux/post/postSlice';
+import { getPostsBefore, clearStatus , getUserLikedPosts } from '../../redux/post/postSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useCallback } from 'react';
 import Login from '../auth/login';
 
 export default function Home() {
     const dispatch = useDispatch();
+    const { user } = useSelector((state) => state.auth);
     const { posts, loading, hasMore } = useSelector((state) => state.post);
     const { isAuthenticated } = useSelector((state) => state.auth);
 
@@ -16,6 +17,13 @@ export default function Home() {
             dispatch(getPostsBefore());
         }
     }, [hasMore, loading, dispatch]);
+  
+    // Charger les posts aimés de l'utilisateur au montage
+    useEffect(() => {
+      if (user) {
+        dispatch(getUserLikedPosts(user.id));
+      }
+    }, [dispatch, user]);
 
     useEffect(() => {
         loadMore();

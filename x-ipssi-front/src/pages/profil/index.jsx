@@ -5,7 +5,7 @@ import { logout } from '../../redux/auth/authSlice';
 import PostCard from '../../components/PostCard/PostCard';
 import { useState, useEffect, useCallback, useRef } from 'react'; // Ajout de useRef et useCallback
 import { getPostsBefore } from '../../redux/post/postSlice';
-import { getUserLikedPosts } from '../../redux/post/postThunk';
+import { getUserLikedPosts, getUserBookmarkPosts } from '../../redux/post/postThunk';
 
 export default function Profile() {
   const dispatch = useDispatch();
@@ -13,6 +13,7 @@ export default function Profile() {
   const { user } = useSelector((state) => state.auth);
   const { posts, loading, hasMore } = useSelector((state) => state.post); // Ajout de hasMore
   const { likedPosts } = useSelector(state => state.post);
+  const { bookmarksPosts } = useSelector(state => state.post);
   const [activeTab, setActiveTab] = useState('posts');
   const observer = useRef();
 
@@ -25,6 +26,13 @@ export default function Profile() {
     useEffect(() => {
       if (user) {
         dispatch(getUserLikedPosts(user.id));
+      }
+    }, [dispatch, user]);
+  
+    // Charger les posts aimés de l'utilisateur au montage
+    useEffect(() => {
+      if (user) {
+        dispatch(getUserBookmarkPosts(user.id));
       }
     }, [dispatch, user]);
 
@@ -43,7 +51,8 @@ export default function Profile() {
 
   const tabs = [
     { id: 'posts', label: 'Posts' },
-    { id: 'likes', label: 'J\'aime' }
+    { id: 'likes', label: 'J\'aime' },
+    { id: 'bookmarks', label: 'Signet' },
   ];
 
   const handleLogout = () => {
@@ -166,6 +175,22 @@ export default function Profile() {
       )}
               
         {activeTab === 'likes' && !loading && likedPosts.length === 0 && (
+          <div className="p-8 text-center text-gray-500">
+            <h3 className="font-bold text-xl mb-2">Aucun post pour le moment</h3>
+            <p>Lorsque vous posterez quelque chose, cela apparaîtra ici.</p>
+          </div>
+        )}
+
+        
+      {activeTab === 'bookmarks' && bookmarksPosts.length > 0 && (
+          bookmarksPosts.map((post) => (
+          <div key={`${post._id}-${post.createdAt}`}>
+            <PostCard post={post} />
+          </div>
+        ))
+      )}
+              
+        {activeTab === 'bookmarks' && !loading && bookmarksPosts.length === 0 && (
           <div className="p-8 text-center text-gray-500">
             <h3 className="font-bold text-xl mb-2">Aucun post pour le moment</h3>
             <p>Lorsque vous posterez quelque chose, cela apparaîtra ici.</p>

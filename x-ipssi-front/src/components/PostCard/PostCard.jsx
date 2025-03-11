@@ -5,19 +5,27 @@ import {
     ArrowPathRoundedSquareIcon, 
     HeartIcon, 
     ShareIcon,
+    BookmarkIcon,
+    BookmarkSlashIcon,
     EllipsisHorizontalIcon,
     TrashIcon,
     HeartIcon as HeartIconSolid,
 } from '@heroicons/react/24/outline';
-import { deletePost, getPostsBefore, clearStatus, likePost } from '../../redux/post/postSlice';
+import { deletePost, getPostsBefore, clearStatus,  addLike,unBookmarkPost, addBookmark,  unlikePost } from '../../redux/post/postSlice';
 
 export default function PostCard({ post }) {
     const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
     const { status, deletingPostId } = useSelector((state) => state.post);
     const [showOptions, setShowOptions] = useState(false);
-    const isLiked = post.likes?.includes(user?.username);
+    // const isLiked = post.likes?.includes(user?.username);
+    const { likedPosts } = useSelector(state => state.post);
+    const { bookmarksPosts } = useSelector(state => state.post);
 
+    // Vérifie si ce post est dans la liste des posts likés par l'utilisateur
+    const isLiked = likedPosts.some(likedPost => likedPost._id === post._id);
+    const isBookmark = bookmarksPosts.some(bookmarksPosts => bookmarksPosts._id === post._id);
+    
     const getInitial = (name) => {
         return name ? name.charAt(0).toUpperCase() : '?';
     };
@@ -34,9 +42,25 @@ export default function PostCard({ post }) {
 
     const handleLike = () => {
         if (user) {
-            dispatch(likePost(post._id));
+            if (isLiked) {
+                dispatch(unlikePost({ postId: post._id, userId: user.id }));
+            } else {
+                dispatch(addLike({ postId: post._id, userId: user.id }));
+            }
         }
     };
+
+    const handleBookmark = () => {
+        if (user) {
+            if (isBookmark) {
+                dispatch(unBookmarkPost({ postId: post._id, userId: user.id }));
+            } else {
+                dispatch(addBookmark({ postId: post._id, userId: user.id }));
+            }
+        }
+    };
+    
+    
 
     // Nouvelle fonction pour formatter le texte avec les hashtags
     const formatContent = (content) => {
@@ -115,10 +139,7 @@ export default function PostCard({ post }) {
                         <div className="flex justify-between mt-3 max-w-md">
                             <ChatBubbleOvalLeftIcon className="h-5 w-5 text-gray-500 hover:text-blue-500 cursor-pointer" />
                             <ArrowPathRoundedSquareIcon className="h-5 w-5 text-gray-500 hover:text-green-500 cursor-pointer" />
-                            <button 
-                                onClick={handleLike}
-                                className="flex items-center space-x-1"
-                            >
+                            <button onClick={handleLike} className="flex items-center space-x-1">
                                 {isLiked ? (
                                     <HeartIconSolid className="h-5 w-5 text-red-500" />
                                 ) : (
@@ -128,6 +149,16 @@ export default function PostCard({ post }) {
                                     <span className="text-sm text-gray-500">{post.likes.length}</span>
                                 )}
                             </button>
+
+                            <button onClick={handleBookmark} className="flex items-center space-x-1">
+                                {isBookmark ? (
+                                    <BookmarkIcon className="h-5 w-5 text-black-500" />
+                                ) : (
+                                    <BookmarkSlashIcon className="h-5 w-5 text-gray-500 hover:text-black-500" />
+                                )}
+                                
+                            </button>
+
                             <ShareIcon className="h-5 w-5 text-gray-500 hover:text-blue-500 cursor-pointer" />
                         </div>
                     </div>

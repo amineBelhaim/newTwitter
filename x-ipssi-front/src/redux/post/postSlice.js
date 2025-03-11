@@ -1,12 +1,13 @@
 // src/redux/post/postSlice.js
 import { createSlice } from '@reduxjs/toolkit';
-import { getPosts, addPost, deletePost, getPostsBefore, likePost, getUserLikedPosts } from './postThunk';
+import { getPosts, addPost, deletePost, getPostsBefore, addBookmark, unBookmarkPost , getUserBookmarkPosts, getUserLikedPosts, addLike, unlikePost } from './postThunk';
 
 export const postSlice = createSlice({
     name: 'post',
     initialState: {
         posts: [],
         likedPosts: [],
+        bookmarksPosts: [],
         hasMore: true,
         loading: false,
         lastTimestamp: null,
@@ -43,6 +44,60 @@ export const postSlice = createSlice({
             state.error = action.error.message || null;
         });
 
+        builder.addCase(addLike.fulfilled, (state, action) => {
+            const { postId, likes } = action.payload;
+            const post = state.posts.find(p => p._id === postId);
+        
+            if (post) {
+                post.likes = likes; // Met à jour le compteur de likes dans Redux
+            }
+        
+            // Ajoute le post aux `likedPosts` s'il n'y est pas déjà
+            if (!state.likedPosts.some(p => p._id === postId)) {
+                state.likedPosts.push(post);
+            }
+        
+        });
+
+        builder.addCase(addBookmark.fulfilled, (state, action) => {
+            const { postId, bookmarks } = action.payload;
+            const post = state.posts.find(p => p._id === postId);
+        
+        
+            // Ajoute le post aux `bookmarksPosts` s'il n'y est pas déjà
+            if (!state.bookmarksPosts.some(p => p._id === postId)) {
+                state.bookmarksPosts.push(post);
+            }
+        
+        });
+
+        
+        builder.addCase(unlikePost.fulfilled, (state, action) => {
+            const { postId, likes } = action.payload;
+            const post = state.posts.find(p => p._id === postId);
+        
+            if (post) {
+                post.likes = likes; // Met à jour le compteur de likes dans Redux
+            }
+        
+            // Supprime le post de `likedPosts` s'il existe
+            state.likedPosts = state.likedPosts.filter(p => p._id !== postId);
+        
+        });
+           
+        builder.addCase(unBookmarkPost.fulfilled, (state, action) => {
+            const { postId, bookmarks } = action.payload;
+            const post = state.posts.find(p => p._id === postId);
+        
+            if (post) {
+                post.bookmarks   = bookmarks; // Met à jour le compteur de likes dans Redux
+            }
+        
+            // Supprime le post de `likedPosts` s'il existe
+            state.bookmarksPosts = state.bookmarksPosts.filter(p => p._id !== postId);
+        
+        });     
+
         // Get User Liked Posts
         builder.addCase(getUserLikedPosts.pending, (state) => {
             state.loading = true;
@@ -51,6 +106,8 @@ export const postSlice = createSlice({
             state.loading = false;
             state.error = action.payload;
         });
+
+
 
         builder.addCase(getUserLikedPosts.fulfilled, (state, action) => {
             console.log("✅ Données des posts likés reçues:", action.payload);
@@ -79,10 +136,51 @@ export const postSlice = createSlice({
                     createdAt: post.createdAt || new Date().toISOString() // Évite une erreur de date
                 };
             });
-        
+            state.likedPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
             console.log("✅ likedPosts mis à jour:", state.likedPosts);
         });
         
+        
+        
+        // Get User Liked Posts
+        builder.addCase(getUserBookmarkPosts.pending, (state) => {
+            state.loading = true;
+        });
+        builder.addCase(getUserBookmarkPosts.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        });
+
+
+
+        builder.addCase(getUserBookmarkPosts.fulfilled, (state, action) => {
+        
+            state.loading = false;
+        
+            // Vérifie si le payload est un tableau et qu'il contient des posts valides
+            if (!Array.isArray(action.payload)) {
+                state.bookmarksPosts = [];
+                return;
+            }
+        
+            // Corrige la structure des posts likés
+            state.bookmarksPosts = action.payload.map(bookmark => {
+                const post = bookmark.post || {}; // Récupère l'objet post, ou {} s'il est manquant
+        
+        
+                return {
+                    _id: post._id || "", // Empêche une erreur si _id est manquant
+                    author: post.author || "Utilisateur inconnu",
+                    content: post.content || "", // Évite l'erreur split() si content est absent
+                    likes: post.likes || [], // Assure que likes est un tableau
+                    name: post.name || "Sans nom",
+                    createdAt: post.createdAt || new Date().toISOString() // Évite une erreur de date
+                };
+            });
+            state.bookmarksPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        });
         
         
 
@@ -157,4 +255,4 @@ export const postSlice = createSlice({
 
 export const { clearStatus } = postSlice.actions;
 export default postSlice.reducer;
-export {getPosts, addPost,  deletePost, getPostsBefore, likePost };
+export {getPosts, addPost,  deletePost, getPostsBefore, addBookmark, unBookmarkPost , getUserBookmarkPosts, addLike, unlikePost, getUserLikedPosts};
