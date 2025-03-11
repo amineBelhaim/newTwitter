@@ -1,11 +1,12 @@
 // src/redux/post/postSlice.js
 import { createSlice } from '@reduxjs/toolkit';
-import { getPosts, addPost, deletePost, getPostsBefore, likePost } from './postThunk';
+import { getPosts, addPost, deletePost, getPostsBefore, likePost, getUserLikedPosts } from './postThunk';
 
 export const postSlice = createSlice({
     name: 'post',
     initialState: {
         posts: [],
+        likedPosts: [],
         hasMore: true,
         loading: false,
         lastTimestamp: null,
@@ -41,6 +42,50 @@ export const postSlice = createSlice({
             state.status = 'failed';
             state.error = action.error.message || null;
         });
+
+        // Get User Liked Posts
+        builder.addCase(getUserLikedPosts.pending, (state) => {
+            state.loading = true;
+        });
+        builder.addCase(getUserLikedPosts.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+        });
+
+        builder.addCase(getUserLikedPosts.fulfilled, (state, action) => {
+            console.log("✅ Données des posts likés reçues:", action.payload);
+        
+            state.loading = false;
+        
+            // Vérifie si le payload est un tableau et qu'il contient des posts valides
+            if (!Array.isArray(action.payload)) {
+                console.error("❌ action.payload n'est pas un tableau valide.");
+                state.likedPosts = [];
+                return;
+            }
+        
+            // Corrige la structure des posts likés
+            state.likedPosts = action.payload.map(like => {
+                const post = like.post || {}; // Récupère l'objet post, ou {} s'il est manquant
+        
+                console.log("🔍 Vérification du post:", post);
+        
+                return {
+                    _id: post._id || "", // Empêche une erreur si _id est manquant
+                    author: post.author || "Utilisateur inconnu",
+                    content: post.content || "", // Évite l'erreur split() si content est absent
+                    likes: post.likes || [], // Assure que likes est un tableau
+                    name: post.name || "Sans nom",
+                    createdAt: post.createdAt || new Date().toISOString() // Évite une erreur de date
+                };
+            });
+        
+            console.log("✅ likedPosts mis à jour:", state.likedPosts);
+        });
+        
+        
+        
+
 
         // Get Posts
         builder.addCase(getPosts.pending, (state) => {
@@ -100,13 +145,13 @@ export const postSlice = createSlice({
         });
 
         // Like Post
-        builder.addCase(likePost.fulfilled, (state, action) => {
-            const { postId, likes } = action.payload;
-            const post = state.posts.find(p => p._id === postId);
-            if (post) {
-                post.likes = likes;
-            }
-        });
+        // builder.addCase(likePost.fulfilled, (state, action) => {
+        //     const { postId, likes } = action.payload;
+        //     const post = state.posts.find(p => p._id === postId);
+        //     if (post) {
+        //         post.likes = likes;
+        //     }
+        // });
     }
 });
 

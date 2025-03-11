@@ -58,3 +58,13 @@ export const likePost = createAsyncThunk('post/likePost', async (postId, { rejec
         return rejectWithValue(error.response?.data || { message: "Une erreur est survenue" });
     }
 });
+
+export const getUserLikedPosts = createAsyncThunk('post/getUserLikedPosts', async (userId, { rejectWithValue }) => {
+    try {
+        const response = await myAxios.get(`api/likes/user/${userId}`);
+        console.log("reponse like", response.data); // Debug pour vérifier la structure
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response?.data || { message: "Une erreur est survenue" });
+    }
+});
