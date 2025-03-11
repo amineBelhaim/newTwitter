@@ -7,6 +7,7 @@ import MainLayout from '../layout/MainLayout';
 import Profile from '../pages/profil';
 import Messages from '../pages/messages';
 import UserProfile from '../pages/profil/userProfile';
+import Notifications from '../pages/Notifications';
 
 export const router = createBrowserRouter([
   {
@@ -29,7 +30,7 @@ export const router = createBrowserRouter([
         path: '/notifications',
         element: (
           <ProtectedRoute>
-            <div>Notifications</div>
+            <Notifications />
           </ProtectedRoute>
         )
       },

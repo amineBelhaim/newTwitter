@@ -5,6 +5,7 @@ import authPersistMiddleware from "./middleware/authPersistMiddleware";
 import messageReducer from "./message/messageSlice";
 import commentReducer from "./comment/commentSlice";
 import followerReducer from "./follower/followerSlice";
+import notificationReducer from "./notification/notificationSlice";
 
 export const store = configureStore({
   reducer: {
@@ -13,6 +14,7 @@ export const store = configureStore({
     auth: authReducer,
     comment: commentReducer,
     follower: followerReducer,
+    notification: notificationReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(authPersistMiddleware),

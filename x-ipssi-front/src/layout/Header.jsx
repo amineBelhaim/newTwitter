@@ -23,9 +23,9 @@ export default function Header() {
             <Link to="/" className="hover:text-blue-500">
               <HomeIcon className="h-6 w-6" />
             </Link>
-            { <Link to="/notifications" className="hover:text-blue-500">
+             <Link to="/notifications" className="hover:text-blue-500">
               <BellIcon className="h-6 w-6" />
-            </Link> }
+            </Link> 
             <Link to="/messages" className="hover:text-blue-500">
               <InboxIcon className="h-6 w-6" />
             </Link>

@@ -3,11 +3,12 @@ import myAxios from "../../utils/interceptor";
 
 export const followUser = createAsyncThunk(
   "follower/followUser",
-  async ({ followerId, followedId }, { rejectWithValue }) => {
+  async ({ followerId, followedId, username }, { rejectWithValue }) => {
     try {
       const response = await myAxios.post("/api/followers", {
         followerId,
         followedId,
+        username,
       });
       return response.data;
     } catch (error) {

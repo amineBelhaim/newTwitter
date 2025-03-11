@@ -1,14 +1,41 @@
 const express = require("express");
 const router = express.Router();
 const Comment = require("../models/Comment");
+const Post = require("../models/Post");
+const Notification = require("../models/Notification");
+const { sendNotification } = require("../notificationService");
+const User = require("../models/User");
 
 // Ajouter un commentaire
 router.post("/add", async (req, res) => {
   try {
-    const { userId, postId, content } = req.body;
+    const { userId, postId, content, username } = req.body;
 
     const newComment = new Comment({ user: userId, post: postId, content });
     await newComment.save();
+
+    // Récupérer le post pour connaître son auteur
+    const post = await Post.findById(postId);
+    if (post && post.author.toString() !== userId) {
+      const userAuthor = await User.findOne({ username: post.author });
+      if (userAuthor) {
+        const newNotification = new Notification({
+          user: userAuthor._id,
+          type: "comment",
+          message: `L'utilisateur ${
+            username || "quelqu'un"
+          } a commenté votre post.`,
+        });
+        await newNotification.save();
+
+        sendNotification(userAuthor._id.toString(), {
+          id: newNotification._id,
+          type: newNotification.type,
+          message: newNotification.message,
+          createdAt: newNotification.createdAt,
+        });
+      }
+    }
 
     res.status(201).json({ message: "Commentaire ajouté avec succès." });
   } catch (err) {

@@ -1,11 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const Like = require("../models/Like");
+const Post = require("../models/Post"); // Pour récupérer l'auteur du post
+const Notification = require("../models/Notification");
+const { sendNotification } = require("../notificationService");
+const User = require("../models/User");
 
 // ✅ Liker un post
 router.post("/", async (req, res) => {
   try {
-    const { userId, postId } = req.body;
+    const { userId, postId, username } = req.body;
 
     const alreadyLiked = await Like.findOne({ user: userId, post: postId });
     if (alreadyLiked) {
@@ -14,6 +18,31 @@ router.post("/", async (req, res) => {
 
     const newLike = new Like({ user: userId, post: postId });
     await newLike.save();
+
+    // Récupérer le post pour obtenir l'auteur
+    const post = await Post.findById(postId);
+    if (post && post.author.toString() !== userId) {
+      // Récupérer le document utilisateur correspondant au username stocké dans post.author
+      const userAuthor = await User.findOne({ username: post.author });
+      if (userAuthor) {
+        // Créer la notification avec l'ObjectId de l'utilisateur
+        const newNotification = new Notification({
+          user: userAuthor._id, // Utiliser l'ObjectId, pas le nom
+          type: "like",
+          message: `L'utilisateur ${
+            username || "quelqu'un"
+          } a liké votre post.`,
+        });
+        await newNotification.save();
+
+        sendNotification(userAuthor._id.toString(), {
+          id: newNotification._id,
+          type: newNotification.type,
+          message: newNotification.message,
+          createdAt: newNotification.createdAt,
+        });
+      }
+    }
 
     res.status(201).json({ message: "Post liké avec succès." });
   } catch (err) {

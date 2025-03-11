@@ -1,13 +1,16 @@
 const express = require("express");
 const router = express.Router();
 const Follower = require("../models/Follower");
+const Notification = require("../models/Notification");
+const { sendNotification } = require("../notificationService");
+const User = require("../models/User");
 
 // Suivre un utilisateur
 router.post("/", async (req, res) => {
   console.log("Corps de la requête :", req.body);
 
   try {
-    const { followerId, followedId } = req.body;
+    const { followerId, followedId, username } = req.body;
 
     if (followerId === followedId) {
       return res
@@ -30,6 +33,23 @@ router.post("/", async (req, res) => {
       followed: followedId,
     });
     await newFollow.save();
+
+    const userToFollow = await User.findById(followedId);
+    if (userToFollow) {
+      const newNotification = new Notification({
+        user: userToFollow._id,
+        type: "follow",
+        message: `L'utilisateur ${username || "quelqu'un"} vous a suivi.`,
+      });
+      await newNotification.save();
+
+      sendNotification(userToFollow._id.toString(), {
+        id: newNotification._id,
+        type: newNotification.type,
+        message: newNotification.message,
+        createdAt: newNotification.createdAt,
+      });
+    }
 
     res.status(201).json({ message: "Utilisateur suivi avec succès." });
   } catch (err) {

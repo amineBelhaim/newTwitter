@@ -16,12 +16,13 @@ export const getComments = createAsyncThunk(
 
 export const addComment = createAsyncThunk(
   "comment/addComment",
-  async ({ postId, userId, content }, { rejectWithValue }) => {
+  async ({ postId, userId, content, username }, { rejectWithValue }) => {
     try {
       const response = await myAxios.post("/api/comments/add", {
         userId,
         postId,
         content,
+        username,
       });
       return response.data;
     } catch (error) {

@@ -91,8 +91,10 @@ export default function UserProfile() {
       if (!isFollowing) {
         await dispatch(followUser({ 
           followerId: currentUser.id, 
-          followedId: profileUser._id 
+          followedId: profileUser._id,
+          username: currentUser.name 
         }));
+        
       } else {
         await dispatch(unfollowUser({ 
           followerId: currentUser.id, 

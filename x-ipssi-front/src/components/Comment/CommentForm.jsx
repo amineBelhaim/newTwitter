@@ -12,7 +12,7 @@ export default function CommentForm({ postId }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!content.trim()) return;
-    dispatch(addComment({ postId, userId: user.id, content }));
+    dispatch(addComment({ postId, userId: user.id, content, username: user.username }));
     setContent("");
   };
 

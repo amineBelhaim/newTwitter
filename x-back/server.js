@@ -4,6 +4,10 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const WebSocket = require("ws");
 const cors = require("cors");
+const {
+  sendNotification,
+  setConnectedUsers,
+} = require("./notificationService");
 
 // Import des routes
 const authRoutes = require("./routes/auth");
@@ -29,7 +33,6 @@ const Notification = require("./models/Notification");
 dotenv.config();
 
 const app = express();
-
 // Création du serveur WebSocket
 const wss = new WebSocket.Server({ port: 8070 });
 const connectedUsers = new Map();
@@ -51,73 +54,12 @@ wss.on("connection", function connection(ws) {
             status: "online",
           };
           connectedUsers.set(userId, userInfo);
+          setConnectedUsers(connectedUsers); // Mise à jour dans le service
           broadcastUserList();
-          // Envoi de l'historique des messages à l'utilisateur qui vient de se connecter
-          sendMessageHistory(ws, userId);
+          // Envoyer l’historique, etc.
           break;
 
-        case "private_message":
-          if (!userId) {
-            ws.send(
-              JSON.stringify({
-                type: "error",
-                content: "Vous devez être authentifié",
-              })
-            );
-            return;
-          }
-
-          const recipient = connectedUsers.get(messageData.recipientId);
-          const messageToStore = new Message({
-            sender: userId,
-            receiver: messageData.recipientId,
-            content: messageData.content,
-          });
-
-          await messageToStore.save();
-
-          // Remplissage (populate) du sender pour l'historique
-          const populatedMessage = await Message.populate(messageToStore, {
-            path: "sender",
-            select: "username name",
-          });
-
-          const messageToSend = {
-            type: "private_message",
-            messageId: populatedMessage._id,
-            content: populatedMessage.content,
-            senderId: userId,
-            senderName: userInfo.username,
-            timestamp: new Date().toISOString(),
-          };
-
-          // Envoi au destinataire
-          if (recipient?.ws.readyState === WebSocket.OPEN) {
-            recipient.ws.send(JSON.stringify(messageToSend));
-          }
-
-          // Envoi d'une confirmation à l'expéditeur
-          ws.send(JSON.stringify({ ...messageToSend, status: "delivered" }));
-          break;
-
-        case "typing":
-          const typingRecipient = connectedUsers.get(messageData.recipientId);
-          if (
-            typingRecipient &&
-            typingRecipient.ws.readyState === WebSocket.OPEN
-          ) {
-            typingRecipient.ws.send(
-              JSON.stringify({
-                type: "typing",
-                senderId: userId,
-                senderName: userInfo.username,
-                isTyping: messageData.isTyping,
-              })
-            );
-          }
-          break;
-
-        // Tu pourras ici ajouter d'autres cas pour gérer d'autres types de messages
+        // ... (vos autres cas de messages)
       }
     } catch (error) {
       console.error("Erreur WebSocket:", error);
@@ -133,6 +75,7 @@ wss.on("connection", function connection(ws) {
   ws.on("close", () => {
     if (userId) {
       connectedUsers.delete(userId);
+      setConnectedUsers(connectedUsers);
       broadcastUserList();
     }
   });
@@ -141,11 +84,11 @@ wss.on("connection", function connection(ws) {
     console.error("WebSocket error:", error);
     if (userId) {
       connectedUsers.delete(userId);
+      setConnectedUsers(connectedUsers);
       broadcastUserList();
     }
   });
 });
-
 async function sendMessageHistory(ws, userId) {
   try {
     const messages = await Message.find({
