@@ -4,15 +4,21 @@ import myAxios from "../../utils/interceptor";
 
 export const addPost = createAsyncThunk(
   "post/addPost",
-  async (data, { rejectWithValue }) => {
+  async (formData, { rejectWithValue }) => {
     try {
-      const response = await myAxios.post("api/forum/", data);
+      const response = await myAxios.post("api/forum/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data", // 📌 Indique qu'on envoie un fichier
+        },
+      });
+
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || { message: "Erreur lors de la création du post" });
     }
   }
 );
+
 
 export const deletePost = createAsyncThunk(
   "post/deletePost",

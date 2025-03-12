@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PhotoIcon, GifIcon, ChartBarIcon } from '@heroicons/react/24/outline';
+import { PhotoIcon, GifIcon, ChartBarIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
 import { useDispatch, useSelector } from 'react-redux';
 import { addPost } from '../../redux/post/postSlice';
 
@@ -7,7 +7,10 @@ export default function PostForm() {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { status } = useSelector((state) => state.post);
+  
   const [content, setContent] = useState('');
+  const [media, setMedia] = useState(null);
+  const [preview, setPreview] = useState(null);
   const [notification, setNotification] = useState(null);
 
   useEffect(() => {
@@ -15,6 +18,9 @@ export default function PostForm() {
       showNotification('loading', 'Envoi du tweet en cours...');
     } else if (status === 'success') {
       showNotification('success', 'Tweet publié avec succès !');
+      setContent('');
+      setMedia(null);
+      setPreview(null);
     } else if (status === 'failed') {
       showNotification('error', 'Erreur lors de la publication');
     }
@@ -29,16 +35,28 @@ export default function PostForm() {
     return name ? name.charAt(0).toUpperCase() : '?';
   };
 
+  // 📌 Gérer l'upload des images/vidéos
+  const handleMediaChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setMedia(file);
+      setPreview(URL.createObjectURL(file)); // 📌 Aperçu de l'image ou vidéo
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!content.trim()) return;
 
-    dispatch(addPost({
-      name : user.name || user.username,
-      content,
-      author: user.username
-    }));
-    setContent('');
+    const formData = new FormData();
+    formData.append("name", user.name || user.username);
+    formData.append("content", content);
+    formData.append("author", user.username);
+    if (media) {
+      formData.append("media", media);
+    }
+
+    dispatch(addPost(formData));
   };
 
   return (
@@ -58,11 +76,48 @@ export default function PostForm() {
                 rows="2"
                 maxLength={280}
               />
+
+              {/* 📌 Afficher un aperçu de l'image ou de la vidéo sélectionnée */}
+              {preview && (
+                <div className="mt-2 relative">
+                  {media && media.type.startsWith("video/") ? (
+                    <video className="w-full max-h-48 rounded-lg" controls>
+                      <source src={preview} type={media.type} />
+                    </video>
+                  ) : (
+                    <img src={preview} alt="Aperçu" className="w-full max-h-48 rounded-lg" />
+                  )}
+                  <button 
+                    type="button"
+                    className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full"
+                    onClick={() => {
+                      setMedia(null);
+                      setPreview(null);
+                    }}
+                  >
+                    ✖
+                  </button>
+                </div>
+              )}
+
               <div className="flex justify-between items-center pt-4">
                 <div className="flex space-x-4">
-                  <button type="button" className="hover:bg-blue-50 rounded-full p-2">
+                  {/* 📌 Bouton pour sélectionner une image ou une vidéo */}
+                  <button
+                    type="button"
+                    className="hover:bg-blue-50 rounded-full p-2"
+                    onClick={() => document.getElementById("mediaInput").click()}
+                  >
                     <PhotoIcon className="h-6 w-6 text-blue-500" />
                   </button>
+                  <input
+                    id="mediaInput"
+                    type="file"
+                    accept="image/*,video/*"
+                    className="hidden"
+                    onChange={handleMediaChange}
+                  />
+
                   <button type="button" className="hover:bg-blue-50 rounded-full p-2">
                     <GifIcon className="h-6 w-6 text-blue-500" />
                   </button>
@@ -76,14 +131,10 @@ export default function PostForm() {
                 <button
                   type="submit"
                   disabled={!content.trim() || status === 'loading'}
-                  className={`
-                    px-4 py-2 rounded-full font-bold
-                    ${!content.trim() || status === 'loading'
+                  className={`px-4 py-2 rounded-full font-bold ${!content.trim() || status === 'loading'
                       ? 'bg-blue-300 cursor-not-allowed'
-                      : 'bg-blue-500 hover:bg-blue-600'
-                    }
-                    text-white transition-colors
-                  `}
+                      : 'bg-blue-500 hover:bg-blue-600'}
+                      text-white transition-colors`}
                 >
                   {status === 'loading' ? 'Envoi...' : 'Tweet'}
                 </button>
@@ -92,21 +143,6 @@ export default function PostForm() {
           </div>
         </form>
       </div>
-
-      {/* Notification */}
-      {notification && (
-        <div className="fixed bottom-5 right-5 z-50 animate-slide-up">
-          <div className={`
-            rounded-lg shadow-lg px-6 py-4 max-w-sm
-            ${notification.type === 'loading' && 'bg-blue-500 text-white'}
-            ${notification.type === 'success' && 'bg-green-500 text-white'}
-            ${notification.type === 'error' && 'bg-red-500 text-white'}
-            transform transition-all duration-300 ease-in-out
-          `}>
-            <p className="font-semibold">{notification.message}</p>
-          </div>
-        </div>
-      )}
     </>
   );
 }
