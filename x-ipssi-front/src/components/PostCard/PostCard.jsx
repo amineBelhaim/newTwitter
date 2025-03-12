@@ -131,23 +131,14 @@ export default function PostCard({ post }) {
               {/* 📌 Afficher une image OU une vidéo selon le type de média */}
               {post.media && (
                       <div className="mt-2 relative">
-                        {isVideo ? (
-                          <video 
-                            className="w-full max-h-48 object-cover rounded-lg cursor-pointer"
-                            controls
-                            onClick={() => setShowFullMedia(true)}
-                          >
-                            <source src={`${API_URL}${post.media}`} type="video/mp4" />
-                            Votre navigateur ne supporte pas la vidéo.
-                          </video>
-                        ) : (
+                        
                           <img 
-                            src={`${API_URL}${post.media}`} 
+                            src={post.media}  
                             alt="Post media" 
                             className="w-full max-h-48 object-cover rounded-lg cursor-pointer"
                             onClick={() => setShowFullMedia(true)}
                           />
-                        )}
+                        
                       </div>
                     )}
 

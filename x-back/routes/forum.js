@@ -25,41 +25,25 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ storage });
 
-router.post("/", upload.single("media"), async (req, res) => {
+router.post("/", async (req, res) => {
     try {
-        let posts;
-        console.log(req.body);
+        const { name, content, author, user, media } = req.body;
 
-        if (Array.isArray(req.body)) {
-            // Gérer un tableau de posts
-            posts = await Post.insertMany(req.body.map(post => ({
-                title: post.title,
-                content: post.content,
-                author: post.author,
-                name: post.name,
-                likes: post.likes || [],
-                media: req.file ? `/uploads/${req.file.filename}` : null // 📌 Stocker l'URL de l'image
-            })));
-        } else {
-            // Gérer un seul post
-            const { title, content, author, name, likes } = req.body;
-            const newPost = new Post({
-                title,
-                content,
-                author,
-                name,
-                likes: likes || [],
-                media: req.file ? `/uploads/${req.file.filename}` : null // 📌 Stocker l'URL de l'image
-            });
+        const newPost = new Post({
+            name,
+            content,
+            author,
+            user,
+            media: media || null, // 📌 Stocker directement l’image en Base64
+        });
 
-            posts = await newPost.save();
-        }
-
-        res.status(201).json(posts);
+        await newPost.save();
+        res.status(201).json(newPost);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
+
 
 
 router.get('/before/:timestamp', async (req, res) => {

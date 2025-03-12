@@ -44,20 +44,45 @@ export default function PostForm() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!content.trim()) return;
-
-    const formData = new FormData();
-    formData.append("name", user.name || user.username);
-    formData.append("content", content);
-    formData.append("author", user.username);
+  
+    let mediaBase64 = null;
+  
+    // 📌 Convertir l’image en Base64 si un fichier est sélectionné
     if (media) {
-      formData.append("media", media);
+      const reader = new FileReader();
+      reader.readAsDataURL(media);
+      reader.onload = () => {
+        mediaBase64 = reader.result; // 📌 Contient l’image en Base64
+  
+        // 📌 Construire l’objet à envoyer
+        const postData = {
+          name: user.name || user.username,
+          content,
+          author: user.username,
+          user: user.id, // 📌 L'ObjectId de l'utilisateur
+          media: mediaBase64, // 📌 Stocker l’image en Base64
+        };
+  
+        dispatch(addPost(postData));
+      };
+    } else {
+      // 📌 Si pas d’image, envoyer directement
+      const postData = {
+        name: user.name || user.username,
+        content,
+        author: user.username,
+        user: user.id,
+        media: null, // 📌 Pas d’image
+      };
+  
+      dispatch(addPost(postData));
     }
-
-    dispatch(addPost(formData));
   };
+  
+
 
   return (
     <>

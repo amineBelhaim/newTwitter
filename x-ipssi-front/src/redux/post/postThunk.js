@@ -4,17 +4,14 @@ import myAxios from "../../utils/interceptor";
 
 export const addPost = createAsyncThunk(
   "post/addPost",
-  async (formData, { rejectWithValue }) => {
+  async (data, { rejectWithValue }) => {
     try {
-      const response = await myAxios.post("api/forum/", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data", // 📌 Indique qu'on envoie un fichier
-        },
+      const response = await myAxios.post("api/forum/", data, {
+        headers: { "Content-Type": "application/json" }, // 📌 JSON pur
       });
-
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || { message: "Erreur lors de la création du post" });
+      return rejectWithValue(error.response.data);
     }
   }
 );
