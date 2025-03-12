@@ -44,7 +44,14 @@ router.post("/", async (req, res) => {
       }
     }
 
-    res.status(201).json({ message: "Post liké avec succès." });
+    // On récupère la liste mise à jour des likes pour ce post
+    const updatedLikes = await Like.find({ post: postId });
+
+    // On renvoie la liste complète des likes
+    res.status(201).json({
+      message: "Post liké avec succès.",
+      likes: updatedLikes, // <--- Le front en a besoin
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -57,7 +64,12 @@ router.delete("/unlike", async (req, res) => {
 
     await Like.findOneAndDelete({ user: userId, post: postId });
 
-    res.status(200).json({ message: "Like retiré avec succès." });
+    // Liste mise à jour
+    const updatedLikes = await Like.find({ post: postId });
+    res.status(200).json({
+      message: "Like retiré avec succès.",
+      likes: updatedLikes,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

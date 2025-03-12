@@ -142,7 +142,7 @@ export default function PostCard({ post }) {
                           </video>
                         ) : (
                           <img 
-                            src={`${API_URL}${post.media}`} 
+                            src={`${post.media}`} 
                             alt="Post media" 
                             className="w-full max-h-48 object-cover rounded-lg cursor-pointer"
                             onClick={() => setShowFullMedia(true)}
@@ -154,22 +154,24 @@ export default function PostCard({ post }) {
               <div className="flex justify-between mt-3 max-w-md">
                 <button onClick={toggleComments} className="flex items-center space-x-1 text-gray-500 hover:text-blue-500">
                   <ChatBubbleOvalLeftIcon className="h-5 w-5" />
-                  <span className="text-sm">Commentaires</span>
                 </button>
                 <ArrowPathRoundedSquareIcon className="h-5 w-5 text-gray-500 hover:text-green-500 cursor-pointer" />
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleLike();
-                  }}
-                  className="flex items-center space-x-1"
-                >
-                  {isLiked ? (
-                    <HeartIconSolid className="h-5 w-5 text-red-500" />
-                  ) : (
-                    <HeartIcon className="h-5 w-5 text-gray-500 hover:text-red-500" />
-                  )}
-                </button>
+  onClick={(e) => {
+    e.stopPropagation();
+    handleLike();
+  }}
+  className="flex items-center space-x-1"
+>
+  {isLiked ? (
+    <HeartIconSolid className="h-5 w-5 text-red-500" />
+  ) : (
+    <HeartIcon className="h-5 w-5 text-gray-500 hover:text-red-500" />
+  )}
+  {/* Affichage du nombre total de likes */}
+  <span>{post.likes?.length || 0}</span>
+</button>
+
                 <button
                   onClick={(e) => {
                     e.stopPropagation();

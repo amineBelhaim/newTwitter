@@ -14,11 +14,14 @@ export const addPost = createAsyncThunk(
 
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || { message: "Erreur lors de la création du post" });
+      return rejectWithValue(
+        error.response?.data || {
+          message: "Erreur lors de la création du post",
+        }
+      );
     }
   }
 );
-
 
 export const deletePost = createAsyncThunk(
   "post/deletePost",
@@ -80,6 +83,7 @@ export const likePost = createAsyncThunk(
   }
 );
 
+// src/redux/post/postThunk.js
 export const addLike = createAsyncThunk(
   "post/addLike",
   async ({ postId, userId, username }, { rejectWithValue }) => {
@@ -89,7 +93,8 @@ export const addLike = createAsyncThunk(
         postId,
         username,
       });
-      return { postId, likes: response.data.likes }; // Retourne la liste mise à jour des likes
+      // ⚠ Assurez-vous que le backend renvoie { likes: [...] }
+      return { postId, likes: response.data.likes };
     } catch (error) {
       return rejectWithValue(
         error.response?.data || { message: "Erreur lors de l'ajout du like" }
@@ -103,9 +108,10 @@ export const unlikePost = createAsyncThunk(
   async ({ postId, userId }, { rejectWithValue }) => {
     try {
       const response = await myAxios.delete("/api/likes/unlike", {
-        data: { userId, postId }, // Envoie `userId` et `postId` dans le body
+        data: { userId, postId },
       });
-      return { postId, likes: response.data.likes }; // Retourne la liste mise à jour des likes
+      // ⚠ Assurez-vous que le backend renvoie { likes: [...] }
+      return { postId, likes: response.data.likes };
     } catch (error) {
       return rejectWithValue(
         error.response?.data || { message: "Erreur lors du retrait du like" }
