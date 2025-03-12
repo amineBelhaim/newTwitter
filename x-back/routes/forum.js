@@ -49,7 +49,6 @@ router.post("/", upload.single("media"), async (req, res) => {
           content: post.content,
           author: post.author,
           name: post.name,
-          likes: post.likes || [],
           media: req.file ? `/uploads/${req.file.filename}` : null, // 📌 Stocker l'URL de l'image
         }))
       );
@@ -61,7 +60,6 @@ router.post("/", upload.single("media"), async (req, res) => {
         content,
         author,
         name,
-        likes: likes || [],
         media: req.file ? `/uploads/${req.file.filename}` : null, // 📌 Stocker l'URL de l'image
       });
 
@@ -154,39 +152,6 @@ router.get("/:id", auth, async (req, res) => {
   }
 });
 
-// =============================================
-// ============== LIKE / UNLIKE ===============
-// =============================================
-router.put("/:id/like", auth, async (req, res) => {
-  try {
-    // ⚠️ Cette logique de "like" / "unlike" stocke encore un tableau "likes" DANS Post
-    // Si tu utilises déjà le modèle Like séparé, tu peux soit l’enlever ici,
-    // soit le garder si c’est nécessaire dans ton code actuel.
-
-    const post = await Post.findById(req.params.id);
-    if (!post) return res.status(404).json({ message: "Post non trouvé" });
-
-    const index = post.likes.indexOf(req.user.username);
-    if (index === -1) {
-      post.likes.push(req.user.username);
-    } else {
-      post.likes.splice(index, 1);
-    }
-
-    await post.save();
-
-    // On renvoie la version "Post" après mise à jour,
-    // mais ça ne reflète pas forcément le "Like" model.
-    // Up to you de conserver ou supprimer ce put/like
-    res.json({ postId: post._id, likes: post.likes });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// =============================================
-// ============== DELETE A POST ===============
-// =============================================
 router.delete("/:id", auth, async (req, res) => {
   try {
     const post = await Post.findByIdAndDelete(req.params.id);
