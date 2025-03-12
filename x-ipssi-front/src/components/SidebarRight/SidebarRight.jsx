@@ -1,6 +1,6 @@
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
-export default function SidebarRight() {
+export default function SidebarRight({ setSearchTerm }) {
   return (
     <div className="hidden lg:block w-80 ml-8">
       <div className="sticky top-0 bg-white">
@@ -10,6 +10,7 @@ export default function SidebarRight() {
             type="text"
             placeholder="Rechercher sur Twitter"
             className="w-full bg-gray-100 rounded-full py-2 pl-12 pr-4 focus:outline-none focus:bg-white focus:ring-1 focus:ring-blue-500"
+            onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
           />
         </div>
         

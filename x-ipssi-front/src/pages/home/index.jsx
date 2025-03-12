@@ -3,7 +3,7 @@ import PostCard from '../../components/PostCard/PostCard';
 import SidebarRight from '../../components/SidebarRight/SidebarRight';
 import { getPostsBefore, clearStatus , getUserLikedPosts } from '../../redux/post/postSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback,useState  } from 'react';
 import Login from '../auth/login';
 
 export default function Home() {
@@ -11,13 +11,14 @@ export default function Home() {
     const { posts, loading, hasMore } = useSelector((state) => state.post);
     const { isAuthenticated } = useSelector((state) => state.auth);
     const { user } = useSelector((state) => state.auth);
-
+    const [searchTerm, setSearchTerm] = useState("");
+    
     const loadMore = useCallback(() => {
         if (hasMore && !loading) {
             dispatch(getPostsBefore());
         }
     }, [hasMore, loading, dispatch]);
-    
+
     useEffect(() => {
         if (user) {
           dispatch(getUserLikedPosts(user.id));
@@ -33,6 +34,11 @@ export default function Home() {
             loadMore();
         }
     };
+
+    const filteredPosts = posts.filter(post => 
+        post.content.toLowerCase().includes(searchTerm)
+    );
+    
 
     useEffect(() => {
         window.addEventListener('scroll', handleScroll);
@@ -54,7 +60,7 @@ export default function Home() {
                     <div className="col-span-2">
                         <PostForm />
                         <div className="divide-y divide-gray-200">
-                            {posts.map((post, index) => (
+                            {filteredPosts.map((post, index) => (
                                 <div key={`${post._id}-${post.createdAt}`}>
                                     <PostCard post={post} />
                                 </div>
@@ -66,7 +72,7 @@ export default function Home() {
                             )}
                         </div>
                     </div>
-                    <SidebarRight />
+                    <SidebarRight  setSearchTerm={setSearchTerm} />
                 </div>
             ) : (
                 <Login />
