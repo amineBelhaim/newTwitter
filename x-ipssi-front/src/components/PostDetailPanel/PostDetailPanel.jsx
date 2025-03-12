@@ -1,14 +1,18 @@
 // src/components/PostDetailPanel/PostDetailPanel.jsx
-import React, { useEffect } from 'react';
+import React, { useEffect , useState} from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useDispatch, useSelector } from 'react-redux';
 import { getPostById } from '../../redux/post/postThunk';
 import CommentList from '../Comment/CommentList';
 import CommentForm from '../Comment/CommentForm';
+const API_URL = import.meta.env.API_URL || 'http://localhost:8000';
 
 export default function PostDetailPanel({ postId, onClose }) {
   const dispatch = useDispatch();
   const { selectedPost: post, status } = useSelector((state) => state.post);
+  const [showFullImage, setShowFullImage] = useState(false);
+  const isVideo = post?.media && post.media.match(/\.(mp4|mov|webm)$/);
+
 
   useEffect(() => {
     dispatch(getPostById(postId));
@@ -18,6 +22,7 @@ export default function PostDetailPanel({ postId, onClose }) {
     return <div className="p-4 text-center text-black">Chargement...</div>;
   if (!post)
     return <div className="p-4 text-center text-black">Post non trouvé</div>;
+
 
   return (
     <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-md">
@@ -43,6 +48,27 @@ export default function PostDetailPanel({ postId, onClose }) {
                 <span className="text-black">{new Date(post.createdAt).toLocaleString()}</span>
               </div>
               <p className="mt-1 text-black">{post.content}</p>
+              {post.media && (
+                      <div className="mt-2 relative">
+                        {isVideo ? (
+                          <video 
+                            className="w-full max-h-48 object-cover rounded-lg cursor-pointer"
+                            controls
+                            onClick={() => setShowFullMedia(true)}
+                          >
+                            <source src={`${API_URL}${post.media}`} type="video/mp4" />
+                            Votre navigateur ne supporte pas la vidéo.
+                          </video>
+                        ) : (
+                          <img 
+                            src={`${API_URL}${post.media}`} 
+                            alt="Post media" 
+                            className="w-full max-h-48 object-cover rounded-lg cursor-pointer"
+                            onClick={() => setShowFullMedia(true)}
+                          />
+                        )}
+                      </div>
+                    )}
             </div>
           </div>
         </div>
@@ -53,6 +79,26 @@ export default function PostDetailPanel({ postId, onClose }) {
           <CommentForm postId={post._id} />
         </div>
       </div>
+          {/* 📌 Modal pour afficher l'image en plein écran */}
+    {showFullImage && (
+      console.log("showFullImage",showFullImage),
+      <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+        <button 
+          className="absolute top-4 right-4  text-white p-2 rounded-full"
+          onClick={() => setShowFullImage(false)}
+        >
+          ✖
+        </button>
+        <img 
+          src={`http://localhost:8000${post.media}`} 
+          alt="Full size post media" 
+          className="max-w-full max-h-full rounded-lg"
+        />
+      </div>
+    )}
+
     </div>
+    
   );
+  
 }

@@ -141,9 +141,10 @@ function broadcastUserList() {
 app.use(cors());
 app.use(express.json());
 
+const MONGO_URL = process.env.MONGO_URL;
 // Connexion à MongoDB
 mongoose
-  .connect("mongodb://127.0.0.1:27017/newTwitterDB")
+  .connect(MONGO_URL)
   .then(() => console.log("MongoDB connecté"))
   .catch((err) => console.log(err));
 
@@ -158,6 +159,7 @@ app.use("/api/retweets", retweetRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/bookmarks", bookmarksRoutes);
 app.use("/api/users", userRoutes);
+app.use("/uploads", express.static("uploads"));
 
 const PORT = 8000;
 app.listen(PORT, () => console.log(`Serveur démarré sur le port ${PORT}`));

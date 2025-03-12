@@ -15,6 +15,7 @@ import { deletePost, addLike, unBookmarkPost, addBookmark, unlikePost } from '..
 import CommentList from '../Comment/CommentList';
 import CommentForm from '../Comment/CommentForm';
 import PostDetailPanel from '../PostDetailPanel/PostDetailPanel';
+const API_URL = import.meta.env.API_URL || 'http://localhost:8000';
 
 // Import des icônes pleines depuis solid pour le cœur liké et le signet activé
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
@@ -27,13 +28,15 @@ export default function PostCard({ post }) {
   const [showOptions, setShowOptions] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [showDetailPanel, setShowDetailPanel] = useState(false);
-  
+
   const { likedPosts } = useSelector(state => state.post);
   const { bookmarksPosts } = useSelector(state => state.post);
 
   // Vérifie si ce post est dans la liste des posts likés ou bookmarkés par l'utilisateur
   const isLiked = likedPosts.some(likedPost => likedPost._id === post._id);
   const isBookmark = bookmarksPosts.some(bookmark => bookmark._id === post._id);
+  const [showFullImage, setShowFullImage] = useState(false);
+  const isVideo = post.media && post.media.match(/\.(mp4|mov|webm)$/);
 
   const getInitial = (name) => (name ? name.charAt(0).toUpperCase() : '?');
   const isAuthor = user?.username === post.author;
@@ -125,6 +128,29 @@ export default function PostCard({ post }) {
                 )}
               </div>
               <p className="mt-1">{post.content}</p>
+              {/* 📌 Afficher une image OU une vidéo selon le type de média */}
+              {post.media && (
+                      <div className="mt-2 relative">
+                        {isVideo ? (
+                          <video 
+                            className="w-full max-h-48 object-cover rounded-lg cursor-pointer"
+                            controls
+                            onClick={() => setShowFullMedia(true)}
+                          >
+                            <source src={`${API_URL}${post.media}`} type="video/mp4" />
+                            Votre navigateur ne supporte pas la vidéo.
+                          </video>
+                        ) : (
+                          <img 
+                            src={`${API_URL}${post.media}`} 
+                            alt="Post media" 
+                            className="w-full max-h-48 object-cover rounded-lg cursor-pointer"
+                            onClick={() => setShowFullMedia(true)}
+                          />
+                        )}
+                      </div>
+                    )}
+
               <div className="flex justify-between mt-3 max-w-md">
                 <button onClick={toggleComments} className="flex items-center space-x-1 text-gray-500 hover:text-blue-500">
                   <ChatBubbleOvalLeftIcon className="h-5 w-5" />
