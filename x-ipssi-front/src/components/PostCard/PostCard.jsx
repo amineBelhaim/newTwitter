@@ -145,7 +145,6 @@ export default function PostCard({ post }) {
               <div className="flex justify-between mt-3 max-w-md">
                 <button onClick={toggleComments} className="flex items-center space-x-1 text-gray-500 hover:text-blue-500">
                   <ChatBubbleOvalLeftIcon className="h-5 w-5" />
-                  <span className="text-sm">Commentaires</span>
                 </button>
                 <ArrowPathRoundedSquareIcon className="h-5 w-5 text-gray-500 hover:text-green-500 cursor-pointer" />
                 <button
@@ -160,6 +159,8 @@ export default function PostCard({ post }) {
                   ) : (
                     <HeartIcon className="h-5 w-5 text-gray-500 hover:text-red-500" />
                   )}
+                  {/* Affichage du nombre total de likes */}
+                  <span>{post.likes?.length || 0}</span>
                 </button>
                 <button
                   onClick={(e) => {
