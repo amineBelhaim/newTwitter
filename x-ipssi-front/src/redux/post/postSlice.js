@@ -158,6 +158,7 @@ export const postSlice = createSlice({
                   createdAt: post.createdAt || new Date().toISOString() // Évite une erreur de date
               };
           });
+          state.likedPosts = state.likedPosts.filter(post => post.content.trim() !== "");
           state.likedPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
           console.log("✅ likedPosts mis à jour:", state.likedPosts);

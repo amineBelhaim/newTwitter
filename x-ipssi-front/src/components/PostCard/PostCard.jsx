@@ -15,6 +15,8 @@ import { deletePost, addLike, unBookmarkPost, addBookmark, unlikePost } from '..
 import CommentList from '../Comment/CommentList';
 import CommentForm from '../Comment/CommentForm';
 import PostDetailPanel from '../PostDetailPanel/PostDetailPanel';
+
+import { setSearchTerm } from "../../redux/search/searchSlice";
 const API_URL = import.meta.env.API_URL || 'http://localhost:8000';
 
 // Import des icônes pleines depuis solid pour le cœur liké et le signet activé
@@ -29,6 +31,9 @@ export default function PostCard({ post }) {
   const [showComments, setShowComments] = useState(false);
   const [showDetailPanel, setShowDetailPanel] = useState(false);
 
+  const handleHashtagClick = (hashtag) => {
+    dispatch(setSearchTerm(hashtag)); // ✅ Enregistre le hashtag dans Redux
+  };
   const { likedPosts } = useSelector(state => state.post);
   const { bookmarksPosts } = useSelector(state => state.post);
 
@@ -127,7 +132,25 @@ export default function PostCard({ post }) {
                   </div>
                 )}
               </div>
-              <p className="mt-1">{post.content}</p>
+              <p className="mt-1">
+                {post.content.split(/(\s+)/).map((word, index) =>
+                  word.startsWith("#") ? (
+                    <span 
+                      key={index} 
+                      className="text-blue-500 hover:underline cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleHashtagClick(word);
+                      }}
+                    >
+                      {word}
+                    </span>
+                  ) : (
+                    word
+                  )
+                )}
+              </p>
+
               {/* 📌 Afficher une image OU une vidéo selon le type de média */}
               {post.media && (
                       <div className="mt-2 relative">
