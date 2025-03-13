@@ -1,5 +1,5 @@
 // src/components/PostCard/PostCard.jsx
-import React, { useState } from 'react';
+import React, { useState , useEffect} from 'react';
 import { Link } from 'react-router-dom';
 import {
   ChatBubbleOvalLeftIcon,
@@ -11,11 +11,12 @@ import {
   TrashIcon,
 } from '@heroicons/react/24/outline';
 import { useDispatch, useSelector } from 'react-redux';
-import { deletePost, addLike, unBookmarkPost, addBookmark, unlikePost } from '../../redux/post/postSlice';
+import { deletePost, addLike, unBookmarkPost, addBookmark, unlikePost,   addRetweet, removeRetweet, } from '../../redux/post/postSlice';
+import { getUserRetweets, getRetweetsForPost } from '../../redux/post/postThunk';
 import CommentList from '../Comment/CommentList';
 import CommentForm from '../Comment/CommentForm';
 import PostDetailPanel from '../PostDetailPanel/PostDetailPanel';
-
+import { ArrowPathRoundedSquareIcon as RetweetIconSolid } from '@heroicons/react/24/solid';
 import { setSearchTerm } from "../../redux/search/searchSlice";
 const API_URL = import.meta.env.API_URL || 'http://localhost:8000';
 
@@ -26,11 +27,11 @@ import { BookmarkIcon as BookmarkIconSolid } from '@heroicons/react/24/solid';
 export default function PostCard({ post }) {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
-  const { status, deletingPostId } = useSelector((state) => state.post);
+  const { status, deletingPostId , retweetedPosts} = useSelector((state) => state.post);
   const [showOptions, setShowOptions] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [showDetailPanel, setShowDetailPanel] = useState(false);
-
+  const [retweetCount, setRetweetCount] = useState(post.retweets?.length || 0);
   const handleHashtagClick = (hashtag) => {
     dispatch(setSearchTerm(hashtag)); // ✅ Enregistre le hashtag dans Redux
   };
@@ -42,7 +43,7 @@ export default function PostCard({ post }) {
   const isBookmark = bookmarksPosts.some(bookmark => bookmark._id === post._id);
   const [showFullImage, setShowFullImage] = useState(false);
   const isVideo = post.media && post.media.match(/\.(mp4|mov|webm)$/);
-
+  const isRetweeted = retweetedPosts.some(retweet => retweet?._id === post._id);
   const getInitial = (name) => (name ? name.charAt(0).toUpperCase() : '?');
   const isAuthor = user?.username === post.author;
 
@@ -62,6 +63,27 @@ export default function PostCard({ post }) {
       }
     }
   };
+  const handleRetweet = (e) => {
+    e.stopPropagation(); // ✅ Empêche l'ouverture du détail du post
+    if (user) {
+      if (isRetweeted) {
+        dispatch(removeRetweet({ originalPostId: post._id, userId: user?.id }))
+          .then(() => {
+            dispatch(getUserRetweets(user?.id));
+            dispatch(getRetweetsForPost(post._id));
+            setRetweetCount(prev => prev - 1);
+          });
+      } else {
+        dispatch(addRetweet({ originalPostId: post._id, userId: user?.id, username: user?.username }))
+          .then(() => {
+            dispatch(getUserRetweets(user?.id));
+            dispatch(getRetweetsForPost(post._id));
+            setRetweetCount(prev => prev + 1);
+          });
+      }
+    }
+  };
+
 
   const handleBookmark = () => {
     if (user) {
@@ -82,6 +104,18 @@ export default function PostCard({ post }) {
   if (status === 'success' && deletingPostId === post._id) {
     return null;
   }
+
+  useEffect(() => {
+    if (user) {
+      dispatch(getUserRetweets(user?.id));
+    }
+    dispatch(getRetweetsForPost(post._id))
+      .then((response) => {
+        if (response.payload) {
+          setRetweetCount(response.payload.length);
+        }
+      });
+  }, [dispatch, user, post._id]);
 
   return (
     <div className="relative">
@@ -169,7 +203,12 @@ export default function PostCard({ post }) {
                 <button onClick={toggleComments} className="flex items-center space-x-1 text-gray-500 hover:text-blue-500">
                   <ChatBubbleOvalLeftIcon className="h-5 w-5" />
                 </button>
-                <ArrowPathRoundedSquareIcon className="h-5 w-5 text-gray-500 hover:text-green-500 cursor-pointer" />
+
+                {/* Retweets */}
+                <button onClick={handleRetweet} className={`flex items-center space-x-1 ${isRetweeted ? "text-green-500" : "text-gray-500 hover:text-green-500"}`}>
+                  {isRetweeted ? <RetweetIconSolid className="h-5 w-5" /> : <ArrowPathRoundedSquareIcon className="h-5 w-5" />}
+                  <span>{retweetCount}</span>
+                </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();

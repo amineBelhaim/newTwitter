@@ -8,6 +8,10 @@ import {
   likePost,
   getPostById,
   addLike, unlikePost ,
+  addRetweet,
+  removeRetweet,
+  getUserRetweets,
+  getRetweetsForPost,
   addBookmark, unBookmarkPost , getUserBookmarkPosts, getUserLikedPosts,// Importez le nouveau thunk
 } from "./postThunk";
 
@@ -24,6 +28,7 @@ export const postSlice = createSlice({
     error: null,
     deletingPostId: null,
     selectedPost: null,
+    retweetedPosts: [],
   },
   reducers: {
     resetPosts: (state) => {
@@ -278,9 +283,48 @@ export const postSlice = createSlice({
         post.likes = likes;
       }
     });
+
+    // ✅ Ajouter un retweet
+    builder.addCase(addRetweet.fulfilled, (state, action) => {
+      const { originalPostId, retweets } = action.payload;
+      const post = state.posts.find((p) => p._id === originalPostId);
+ 
+      if (post) {
+        post.retweets = retweets; // 🔥 Met à jour le compteur des retweets
+      }
+ 
+      state.retweetedPosts = retweets.map((r) => r.originalPost); // 🔥 Met à jour Redux
+    });
+ 
+    // ✅ Supprimer un retweet
+    builder.addCase(removeRetweet.fulfilled, (state, action) => {
+      const { originalPostId, retweets } = action.payload;
+      const post = state.posts.find((p) => p._id === originalPostId);
+ 
+      if (post) {
+        post.retweets = retweets; // 🔥 Met à jour le compteur des retweets
+      }
+ 
+      state.retweetedPosts = retweets.map((r) => r.originalPost); // 🔥 Met à jour Redux
+    });
+ 
+    // ✅ Charger les retweets de l'utilisateur
+    builder.addCase(getUserRetweets.fulfilled, (state, action) => {
+      state.retweetedPosts = action.payload.map((r) => r.originalPost);
+    });
+ 
+    // ✅ Obtenir les retweets d'un post
+    builder.addCase(getRetweetsForPost.fulfilled, (state, action) => {
+      const { postId, retweets } = action.payload;
+      const post = state.posts.find((p) => p._id === postId);
+      if (post) {
+        post.retweets = retweets;
+      }
+    });
+
   },
 });
 
 export const { clearStatus } = postSlice.actions;
 export default postSlice.reducer;
-export { getPosts, addPost, deletePost, getPostsBefore, likePost , addBookmark, unBookmarkPost , getUserBookmarkPosts, getUserLikedPosts, addLike, unlikePost};
+export { getPosts, addPost, deletePost,getRetweetsForPost, getUserRetweets, removeRetweet, addRetweet,   getPostsBefore, likePost , addBookmark, unBookmarkPost , getUserBookmarkPosts, getUserLikedPosts, addLike, unlikePost};
