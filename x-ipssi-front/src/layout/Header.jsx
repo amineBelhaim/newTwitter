@@ -4,7 +4,11 @@ import { useSelector } from 'react-redux';
 
 export default function Header() {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
-
+  const notifications = useSelector((state) => state.notification.list);
+  
+  // ✅ Vérifie s'il y a des notifications non lues
+  const unreadCount = notifications.filter(notif => !notif.isRead).length;
+  
   // Fonction pour générer l'avatar avec la première lettre
   const getInitial = (name) => {
     return name ? name.charAt(0).toUpperCase() : '?';
@@ -22,10 +26,15 @@ export default function Header() {
           <nav className="hidden md:flex space-x-6">
             <Link to="/" className="hover:text-blue-500">
               <HomeIcon className="h-6 w-6" />
-            </Link>
-             <Link to="/notifications" className="hover:text-blue-500">
-              <BellIcon className="h-6 w-6" />
-            </Link> 
+              </Link>
+              <Link to="/notifications" className="relative hover:text-blue-500">
+                <BellIcon className="h-6 w-6" /> 
+                {unreadCount > 0 && (
+                  <div className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-xs flex items-center justify-center rounded-full shadow-md">
+                    {unreadCount}
+                  </div>
+                )}
+              </Link>
             <Link to="/messages" className="hover:text-blue-500">
               <InboxIcon className="h-6 w-6" />
             </Link>
