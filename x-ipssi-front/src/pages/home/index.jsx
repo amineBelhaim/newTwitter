@@ -5,13 +5,14 @@ import { getPostsBefore, clearStatus , getUserLikedPosts } from '../../redux/pos
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useCallback,useState  } from 'react';
 import Login from '../auth/login';
+import { setSearchTerm, clearSearchTerm } from "../../redux/search/searchSlice";
 
 export default function Home() {
     const dispatch = useDispatch();
     const { posts, loading, hasMore } = useSelector((state) => state.post);
     const { isAuthenticated } = useSelector((state) => state.auth);
     const { user } = useSelector((state) => state.auth);
-    const [searchTerm, setSearchTerm] = useState("");
+    const searchTerm = useSelector((state) => state.search.searchTerm); // ✅ Utilise Redux pour la recherche
     
     const loadMore = useCallback(() => {
         if (hasMore && !loading) {

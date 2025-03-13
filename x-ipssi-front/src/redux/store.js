@@ -6,6 +6,7 @@ import messageReducer from "./message/messageSlice";
 import commentReducer from "./comment/commentSlice";
 import followerReducer from "./follower/followerSlice";
 import notificationReducer from "./notification/notificationSlice";
+import searchReducer from "./search/searchSlice";
 
 export const store = configureStore({
   reducer: {
@@ -15,6 +16,7 @@ export const store = configureStore({
     comment: commentReducer,
     follower: followerReducer,
     notification: notificationReducer,
+    search: searchReducer, 
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(authPersistMiddleware),

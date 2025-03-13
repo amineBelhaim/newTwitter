@@ -202,6 +202,7 @@ export default function Profile() {
         
       {activeTab === 'likes' && likedPosts.length > 0 && (
         likedPosts.map((post) => (
+          console.log("likedPosts", likedPosts),
           <div key={`${post._id}-${post.createdAt}`}>
             <PostCard post={post} />
           </div>

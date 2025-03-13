@@ -181,3 +181,68 @@ export const getPostById = createAsyncThunk(
     }
   }
 );
+  // ✅ Ajouter un retweet
+export const addRetweet = createAsyncThunk(
+  "post/addRetweet",
+  async ({ originalPostId, userId, username }, { rejectWithValue }) => {
+    try {
+      const response = await myAxios.post("/api/retweets", {
+        userId,
+        originalPostId,
+        username,
+      });
+      return { originalPostId, retweets: response.data.retweets }; // Mise à jour des retweets
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Erreur lors de l'ajout du retweet" }
+      );
+    }
+  }
+);
+ 
+// ✅ Supprimer un retweet
+export const removeRetweet = createAsyncThunk(
+  "post/removeRetweet",
+  async ({ originalPostId, userId }, { rejectWithValue }) => {
+    try {
+      const response = await myAxios.delete("/api/retweets/unretweet", {
+        data: { userId, originalPostId },
+      });
+      return { originalPostId, retweets: response.data.retweets };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Erreur lors du retrait du retweet" }
+      );
+    }
+  }
+);
+ 
+// ✅ Obtenir les retweets d'un utilisateur
+export const getUserRetweets = createAsyncThunk(
+  "post/getUserRetweets",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await myAxios.get(`/api/retweets/user/${userId}`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Une erreur est survenue" }
+      );
+    }
+  }
+);
+ 
+// ✅ Obtenir les retweets d'un post spécifique
+export const getRetweetsForPost = createAsyncThunk(
+  "post/getRetweetsForPost",
+  async (postId, { rejectWithValue }) => {
+    try {
+      const response = await myAxios.get(`/api/retweets/${postId}`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Une erreur est survenue" }
+      );
+    }
+  }
+);
